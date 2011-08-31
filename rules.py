@@ -5,10 +5,10 @@
 # 2010-07-14 Rhidalin Bytes - Updated for common language files
 # 2010-07-20 Added ability to send specific rule by language
 # 2010-08-13 Admin notified of rules success
-#            Single rules available similar to spam
+# Single rules available similar to spam
 
 __version__ = '1.2'
-__author__  = 'Bakes'
+__author__ = 'Bakes'
 
 import b3, re, sys, thread, string, codecs, time
 import b3.events
@@ -16,13 +16,13 @@ import b3.events
 class RulesPlugin(b3.plugin.Plugin):
     _adminPlugin = None
     files = {}
-	# rulestorage = {idx: 1, lang: 'cryll', number: 1, rule: 'Rule 1 - This is the rule' }
+# rulestorage = {idx: 1, lang: 'cryll', number: 1, rule: 'Rule 1 - This is the rule' }
     rulestorage = {}
 
     def startup(self):
         """\
-        Initialize plugin settings
-        """
+Initialize plugin settings
+"""
 
         #get the admin plugin so we can register commands
         self._adminPlugin = self.console.getPlugin('admin')
@@ -75,8 +75,8 @@ class RulesPlugin(b3.plugin.Plugin):
         return None
     def cmd_languages(self, data, client=None, cmd=None):
         """\
-        - List available rule languages
-        """
+- List available rule languages
+"""
         lang = []
         for n in self.files:
             lang.append(n)
@@ -84,8 +84,8 @@ class RulesPlugin(b3.plugin.Plugin):
 
     def cmd_rules(self, data, client=None, cmd=None):
         """\
-        - say the rules with option language or single rule. <target> <language> <rule number> !languages for list
-        """
+- say the rules with option language or single rule. <target> <language> <rule number> !languages for list
+"""
 
         if not self._adminPlugin.aquireCmdLock(cmd, client, 60, True):
             client.message('^7Do not spam commands')
@@ -98,34 +98,47 @@ class RulesPlugin(b3.plugin.Plugin):
            
         if data:
             m = self._adminPlugin.parseUserCmd(data)
+            
             if m[0] not in self.files:
+            # If only one arg, not language, is it client?
                 sclient = self._adminPlugin.findClientPrompt(m[0], client)
+                if not sclient:
+                    return
                 if sclient.maxLevel >= client.maxLevel:
                     client.message('%s ^7already knows the rules' % sclient.exactName)
                     return
-            else:
-                thread.start_new_thread(self._sendRules, (None, lang, rule))
+
             if m[1]:
                 try:
-                    if m[1] not in self.files:
+                    lang, rule = m[1].split(' ')
+                    if lang not in self.files:
                         rule = m[1]
                         thread.start_new_thread(self._sendRules, (sclient, None, rule))
                     else:
-                        lang, rule = m[1].split(' ')
-                        if lang in self.file:
-                            rule = int(rule)
-                            thread.start_new_thread(self._sendRules, (sclient, lang, rule))
+                        rule = int(rule)
+                        thread.start_new_thread(self._sendRules, (sclient, lang, rule))
                 except:
                     lang = m[1]
-                    thread.start_new_thread(self._sendRules, (sclient, lang))
+                    if lang in self.files:
+                        thread.start_new_thread(self._sendRules, (sclient, lang))
+                    else:
+                        return
             else:
-                thread.start_new_thread(self._sendRules, (sclient,))
+                if m[0] not in self.files:
+                    thread.start_new_thread(self._sendRules, (sclient,))
+                else:
+                    lang = m[0]
+                    sclient = client
+                    thread.start_new_thread(self._sendRules, (sclient, lang))
         elif cmd.loud:
             thread.start_new_thread(self._sendRules, (None,))
         else:
             sclient = client
             thread.start_new_thread(self._sendRules, (sclient,))
-        client.message('Yes sir, spamming the rule(s) to %s' % sclient.exactName)
+        if sclient:
+            client.message('Yes sir, spamming the rule(s) to %s' % sclient.exactName)
+        else:
+            client.message('Yes sir, spamming the rules!')
 
 
     def _sendRules(self, sclient, lang=None, rule=None ):
