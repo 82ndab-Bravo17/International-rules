@@ -8,7 +8,7 @@
 # Single rules available similar to spam
 
 __version__ = '1.2'
-__author__ = 'Bakes'
+__author__ = 'Rhidalin-Bytes'
 
 import b3, re, sys, thread, string, codecs, time
 import b3.events
