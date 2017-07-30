@@ -18,6 +18,9 @@ class RulesPlugin(b3.plugin.Plugin):
     files = {}
 # rulestorage = {idx: 1, lang: 'cryll', number: 1, rule: 'Rule 1 - This is the rule' }
     rulestorage = {}
+    # All players _adminlevel and above can spam rules, others will get a message saying they have to ask for the rules.
+    _adminlevel = 20
+    _rulesmessage = "^7Please ask an Admin to send you the rules."
 
     def startup(self):
         """\
@@ -43,7 +46,20 @@ Initialize plugin settings
                 func = self.getCmd(cmd)
                 if func:
                     self._adminPlugin.registerCommand(self, cmd, level, func, alias)
-        # find out which language files are available in config and make sure they are there.
+
+        try:
+            self._adminlevel = self.config.getint('settings', 'adminlevel')
+        except Exception, msg:
+            self.error('%s - No admin level given in config file, using default admin level of 20' % msg)
+        self.debug('Using %s as Admin level for spamming Rules' % self._adminlevel)
+        
+        try:
+            self._rulesmessage = self.config.get('settings', 'rulesmessage')
+        except Exception, msg:
+            self.error('%s - No rules message given in config file, using default' % msg)
+        self.debug('Using %s as Rules message to non admins' % self._rulesmessage)
+            
+        # find out which language files are available in config and make sure they are there.            
         if 'files' in self.config.sections():
             cnt = 1
             for f in self.config.options('files'):
@@ -90,12 +106,16 @@ Initialize plugin settings
         if not self._adminPlugin.aquireCmdLock(cmd, client, 60, True):
             client.message('^7Do not spam commands')
             return
-        if client.maxLevel >= self._adminPlugin.config.getint('settings', 'admins_level'):
-           pass
-        else:
-            client.message('^7Stop trying to spam other players')
-            return
+#        if client.maxLevel >= self._adminPlugin.config.getint('settings', 'admins_level'):
+#           pass
+#        else:
+#            client.message('^7Stop trying to spam other players')
+#            return
            
+        if client.maxLevel < self._adminlevel:
+            client.message(self._rulesmessage)
+            return
+            
         if data:
             m = self._adminPlugin.parseUserCmd(data)
             

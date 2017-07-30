@@ -1,8 +1,12 @@
 <configuration plugin="rules">
 	<settings name="commands">
-        <set name="rules-r">20</set>
+        <set name="rules-r">0</set>
         <set name="languages-lang">20</set>
     </settings>
+	<settings name="settings">
+		<set name="adminlevel">20</set>
+		<set name="rulesmessage">^7Please ask an Admin to send you the rules.</set>
+	</settings>
     <settings name="files">
         <set name="czech">d:\82ndab3\18_60\extplugins\conf\czech.rules</set>
         <set name="cryll">d:\82ndab3\18_60\extplugins\conf\cryll.rules</set>
